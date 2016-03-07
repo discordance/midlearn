@@ -1,6 +1,7 @@
 import os
 import midi
 from random import randint
+import numpy as np
 
 def seq2midi(sequence):
     """
@@ -130,7 +131,6 @@ for f in files:
     except:
         continue;
     resolution = patterns.resolution
-    print resolution
     tick = resolution/8
     drpattern = midi.Pattern()
     drpattern.resolution = patterns.resolution
@@ -153,8 +153,7 @@ for f in files:
                         evt_ct+=1
                         if type(event) == type(midi.events.NoteOnEvent()):
                             add_step(sequence, tck_ct/tick, event)
-                        #print tck_ct/thirtysec, type(event)
-                        #print event.tick, event.pitch, type(event)
+
                     else:
                         drumtrack = False
             elif type(event) == type(midi.events.EndOfTrackEvent()):
@@ -163,10 +162,16 @@ for f in files:
         if drumtrack:
             # finish this sequnce
             complete_sequence(sequence)
-            if len(drtrack) >= 100:
-                drpattern.append(drtrack)
-                midi.write_midifile("out/"+`ct`+".mid", drpattern)
-                midi.write_midifile("out/"+`ct`+"_s.mid", seq2midi(sequence))
+            if len(sequence)/8/4 >= 16:
+                #drpattern.append(drtrack)
+                #midi.write_midifile("out/"+`ct`+".mid", drpattern)
+                #midi.write_midifile("out/"+`ct`+"_s.mid", seq2midi(sequence))
+                try:
+                    np_seq = np.array(sequence)
+                    np_seq.dump(open("numpy/"+`ct`+".numpy", 'wb'))
+                except:
+                    continue;    
+                print ct
                 ct+=1
-                if ct >= 1:
-                    exit()
+                # if ct >= 1:
+                #     exit()

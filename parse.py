@@ -2,6 +2,16 @@ import os
 import midi
 from random import randint
 import numpy as np
+from pymongo import MongoClient
+import sys
+from utils import compress, decompress
+
+# make database
+client = MongoClient('localhost', 27017)
+db = client.midibase
+collection = db.beats_nolabel
+
+BEAT_DIV = 32
 
 def seq2midi(sequence):
     """
@@ -25,14 +35,14 @@ def seq2midi(sequence):
                 on_evt.pitch = mp[n]
                 on_evt.velocity = int(event[6]*127)
                 if stamped == False and evct > 0:
-                    on_evt.tick = patt.resolution/8 + offset - patt.resolution/8
+                    on_evt.tick = patt.resolution/BEAT_DIV + offset - patt.resolution/BEAT_DIV
                     stamped = True
                 else:
                     on_evt.tick = 0
                 track.append(on_evt)
             n += 1
         if stamped == False:
-            offset += patt.resolution/8
+            offset += patt.resolution/BEAT_DIV
         else:
             offset = 0
         # NTE OFF
@@ -44,7 +54,7 @@ def seq2midi(sequence):
                 off_evt.channel = 10
                 off_evt.pitch = mp[n]
                 if stamped == False and evct > 0:
-                    off_evt.tick = patt.resolution/8
+                    off_evt.tick = patt.resolution/BEAT_DIV
                     stamped = True
                 else:
                     off_evt.tick = 0
@@ -57,7 +67,7 @@ def complete_sequence(sequence):
     """
         Make sequences %8 number or bars
     """
-    while (len(sequence)/8.0/4.0)%8.0 != 0.0:
+    while (len(sequence)/float(BEAT_DIV)/4.0)%8.0 != 0.0:
         sequence.append([0, 0, 0, 0, 0, 0, 0.0])
     return sequence
 
@@ -124,14 +134,16 @@ for root, directories, filenames in os.walk('/Users/nunja/Documents/Lab/MIDI/BIG
         files.append(os.path.join(root,filename))
 
 files = [ file for file in files if file.endswith( ('.mid','.midi', '.MID') ) ]
-ct = 0
-for f in files:
+ct = 24420
+for f in files[ct:len(files)-1]:
     try:
         patterns = midi.read_midifile(f)
     except:
         continue;
     resolution = patterns.resolution
-    tick = resolution/8
+    tick = resolution/BEAT_DIV
+    if tick == 0:
+        continue;
     drpattern = midi.Pattern()
     drpattern.resolution = patterns.resolution
     # define sequence here will concat tracks :)
@@ -152,7 +164,10 @@ for f in files:
                         tck_ct+=event.tick
                         evt_ct+=1
                         if type(event) == type(midi.events.NoteOnEvent()):
-                            add_step(sequence, tck_ct/tick, event)
+                            try:
+                                add_step(sequence, tck_ct/tick, event)
+                            except:
+                                continue;
 
                     else:
                         drumtrack = False
@@ -162,16 +177,21 @@ for f in files:
         if drumtrack:
             # finish this sequnce
             complete_sequence(sequence)
-            if len(sequence)/8/4 >= 16:
+            if len(sequence)/BEAT_DIV/4 >= 16:
                 #drpattern.append(drtrack)
                 #midi.write_midifile("out/"+`ct`+".mid", drpattern)
-                #midi.write_midifile("out/"+`ct`+"_s.mid", seq2midi(sequence))
+                #midi.write_midifile("out/"+`ct`+"_16.mid", seq2midi(sequence))
                 try:
                     np_seq = np.array(sequence)
-                    np_seq.dump(open("numpy/"+`ct`+".numpy", 'wb'))
+                    entry = {
+                        "beat_num": ct,
+                        "beat_zip": compress(np_seq),
+                        "beat_bars": len(np_seq)/BEAT_DIV/4
+                    }
+                    collection.insert_one(entry)
                 except:
-                    continue;    
+                    e = sys.exc_info()[0]
+                    print e
+                    continue
                 print ct
                 ct+=1
-                # if ct >= 1:
-                #     exit()

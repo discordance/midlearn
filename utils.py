@@ -19,7 +19,7 @@ def compress(seq):
     compressed = base64.encodestring(b64.encode('zlib'))
     return compressed
 
-def plot_seq(seq):
+def plot_seq(seq, marker='|', size='7'):
     # seq indexes
     KK = []
     LT = []
@@ -44,7 +44,7 @@ def plot_seq(seq):
     plt.xlim((0,len(seq)))
     plt.ylim((-1,8))
     plt.yticks([0, 1, 2, 3, 4, 5, 6, 7], ['kick', 'lowperc', 'hiperc', 'loworld', 'hiworld', 'snare', 'hihat', 'cymba'])
-    plt.scatter(x, y, color='r', s=7, marker='|')
+    plt.scatter(x, y, color='r', s=size, marker=marker)
     # Get current size
     plt.show()
 

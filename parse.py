@@ -68,7 +68,10 @@ def complete_sequence(sequence):
         Make sequences %8 number or bars
     """
     while (len(sequence)/float(BEAT_DIV)/4.0)%8.0 != 0.0:
-        sequence.append([0, 0, 0, 0, 0, 0, 0, 0, 0.0])
+        try:
+            sequence.append([0, 0, 0, 0, 0, 0, 0, 0, 0.0])
+        except:
+            break;
     return sequence
 
 def add_step(sequence, tick, event):
@@ -147,7 +150,7 @@ for root, directories, filenames in os.walk('/Users/nunja/Documents/Lab/MIDI/BIG
         files.append(os.path.join(root,filename))
 
 files = [ file for file in files if file.endswith( ('.mid','.midi', '.MID') ) ]
-ct = 5879
+ct = 102599
 for f in files[ct:len(files)-1]:
     try:
         patterns = midi.read_midifile(f)

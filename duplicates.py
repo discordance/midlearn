@@ -13,7 +13,7 @@ pipeline = [
     {"$match": {"count": {"$gte": 2 }}},
     {"$sort": {"count": -1}},
     {"$project": {"uniqueIds":1, "_id":0}},
-    {"$limit": 100},
+    #{"$limit": 100},
     {"$out": 'beats_nolabel_duplicates'}
 ]
 

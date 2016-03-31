@@ -19,7 +19,7 @@ pipeline = [
 
 db.command('aggregate', 'beats_nolabel', pipeline=pipeline, allowDiskUse=True)
 
-# for dup in col_duplicates.find():
-#     dup[u'uniqueIds'].pop(0)
-#     for _id in dup[u'uniqueIds']:
-#         col_beats_nolabel.delete_one({'_id':_id})
+for dup in col_duplicates.find():
+    dup[u'uniqueIds'].pop(0)
+    for _id in dup[u'uniqueIds']:
+        col_beats_nolabel.delete_one({'_id':_id})

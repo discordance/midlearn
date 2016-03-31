@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import base64
 import sys
 
+BEAT_DIV = 32
 
 def decompress(str):
     zipped = base64.decodestring(str)
@@ -19,7 +20,7 @@ def compress(seq):
     compressed = base64.encodestring(b64.encode('zlib'))
     return compressed
 
-def plot_seq(seq, marker='|', size='7'):
+def plot_seq(seq, marker='|', size='7', quant=32):
     # seq indexes
     KK = []
     LT = []
@@ -43,9 +44,11 @@ def plot_seq(seq, marker='|', size='7'):
     fig = plt.figure()
     plt.xlim((0,len(seq)))
     plt.ylim((-1,8))
+    plt.xticks(np.arange(0,len(seq),quant))
     plt.yticks([0, 1, 2, 3, 4, 5, 6, 7], ['kick', 'lowperc', 'hiperc', 'loworld', 'hiworld', 'snare', 'hihat', 'cymba'])
     plt.scatter(x, y, color='r', s=size, marker=marker)
     # Get current size
+    plt.grid()
     plt.show()
 
 

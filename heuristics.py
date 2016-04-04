@@ -58,7 +58,7 @@ def heuristics(beat):
         density = tri.mean()
 
     #print beat[u'beat_num'], density, divers, time_sig
-    print theme.mean()
+    print theme.shape
 
 # # # # # # # # # #
 np.set_printoptions(threshold=np.inf)

@@ -3,6 +3,16 @@ import numpy as np
 from pymongo import MongoClient
 from utils import *
 import midi
+from multiprocessing import Pool as ThreadPool
+import time
+
+# db.beats_nolabel.update({heuristics:{$exists:true}},{$unset:{heuristics:""}},{multi:true})
+# db.beats_nolabel.count({heuristics:{$exists:true}})
+np.set_printoptions(threshold=np.inf)
+# mongo conf
+client = MongoClient('localhost', 27017)
+db = client.midibase
+col_beats_nolabel = db.beats_nolabel
 
 def diversity(chunks):
     """
@@ -27,9 +37,9 @@ def diversity(chunks):
 
 def get_batch(_id, col, limit):
     if _id is not None:
-        return list(col.find({'_id':{'$gt':_id}}).limit(limit))
+        return list(col.find({'_id':{'$gt':_id}, "heuristics":{"$exists":False}}).limit(limit))
     else:
-        return list(col.find().limit(limit))
+        return list(col.find({"heuristics":{"$exists":False}}).limit(limit))
 
 def heuristics(beat):
     np_seq = decompress(beat[u'beat_zip'])
@@ -57,18 +67,34 @@ def heuristics(beat):
         drum_avg = tri.mean(axis=1).mean(axis=0)
         density = tri.mean()
 
-    #print beat[u'beat_num'], density, divers, time_sig
-    print theme.shape
+    res = {
+        "beat_id": beat[u'_id'],
+        "time_sig":time_sig,
+        "theme_zip":compress(theme),
+        "diversity": divers,
+        "density": density,
+        "drum_avg": drum_avg.tolist(),
+    }
+    return res
 
 # # # # # # # # # #
-np.set_printoptions(threshold=np.inf)
-# mongo
-client = MongoClient('localhost', 27017)
-db = client.midibase
-col_beats_nolabel = db.beats_nolabel
 
-# first batch
-first_batch = get_batch(None, col_beats_nolabel, 100)
-last_id = first_batch[-1][u'_id']
-for x in range(0, len(first_batch)-1):
-    heuristics(first_batch[x])
+def nbatch(_id, limit):
+    print 'starting a batch of', limit
+    batch = get_batch(_id, col_beats_nolabel, limit)
+    print batch
+    return
+    last_id = batch[-1][u'_id']
+    pool = ThreadPool(8)
+    results = pool.map(heuristics, batch)
+    pool.close()
+    pool.join()
+    for i in range(0, len(results)):
+        col_beats_nolabel.update_one(
+            {"_id": results[i]["beat_id"]},
+            {"$set": {"heuristics": results[i]}}
+        )
+    print 'next batch'
+    nbatch(last_id, limit)
+
+nbatch(None, 1)

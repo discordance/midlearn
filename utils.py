@@ -1,7 +1,5 @@
 import midi
 import numpy as np
-from rstr_max.rstr_max import *
-from pydash import filter_, max_
 import matplotlib.pyplot as plt
 import base64
 import sys
@@ -101,45 +99,3 @@ def seq2midi(sequence):
             n += 1
         evct += 1
     return patt
-
-# def encode(arr):
-#     rez = ''
-#     for st in arr:
-#         b = ''.join([str(int(a)) for a in st[0:6]])
-#         ch = chr(int(b, 2)+46)
-#         rez += ch
-#     return rez
-# def bars_repeats(str):
-#     """
-#         Finds repeats by time signatures
-#     """
-#     repeats = str_repeats(str)
-#     _44_repeats =  filter_(repeats, lambda x, k: len(k) >= 32 and len(k) < 64)
-#     _34_repeats =  filter_(repeats, lambda x, k: len(k) >= 24 and len(k) < 32)
-#     _22_repeats =  filter_(repeats, lambda x, k: len(k) >= 16 and len(k) < 24)
-#     index = [
-#         {"rythm":"4/4", "r": len(_44_repeats)},
-#         {"rythm":"3/4", "r": len(_34_repeats)},
-#         {"rythm":"2/2", "r": len(_22_repeats)},
-#     ]
-#     return max_(index, 'r')
-
-# def str_repeats(str):
-#     """
-#         Finds repeats in a string
-#     """
-#     rstr = Rstr_max()
-#     rstr.add_str(str)
-#     r = rstr.go()
-#     repdic = {}
-#     for (offset_end, nb), (l, start_plage) in r.iteritems():
-#         ss = rstr.global_suffix[offset_end-l:offset_end]
-#         id_chaine = rstr.idxString[offset_end-1]
-#         s = rstr.array_str[id_chaine]
-#         repdic[ss] = {'str':ss,'repeat':nb, 'offsets':[]}
-#         for o in range(start_plage, start_plage + nb):
-#             offset_global = rstr.res[o]
-#             offset = rstr.idxPos[offset_global]
-#             id_str = rstr.idxString[offset_global]
-#             repdic[ss]['offsets'].append(offset)
-#     return repdic

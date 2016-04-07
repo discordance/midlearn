@@ -2,3 +2,6 @@ out/*.mid
 numpy/*.numpy
 .DS_Store
 *.pyc
+*.so
+*.c
+build
